@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="ru">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="index.css">
+		<link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,700&amp;subset=cyrillic" rel="stylesheet">
+		<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,700&amp;subset=cyrillic" rel="stylesheet">
+		<link href="https://fonts.googleapis.com/css?family=Roboto:300,400,700&amp;subset=cyrillic" rel="stylesheet">
+		<link href="https://fonts.googleapis.com/css?family=Playfair+Display:400,400i|Tinos:400,400i&amp;subset=cyrillic" rel="stylesheet">
+		<script type="text/javascript" src="/shared/3rdparty/jquery/jquery.js" language="javascript1.1"></script>
+		<script src="index.js"></script>
+<style>
+* { box-sizing: border-box; }
+body, html { height: 100%; }
+body { background-color: #000000; color: #ffffff; }
+h1 { font-family: "Playfair Display"; font-size: 30px; padding: 10px 0px; margin: 0px; }
+
+</style>
+	</head>
+	<body>
+		<h1>Игровое поле</h1>
+			<div class="field-box">
+				<div id="field" class="field">
+				</div>
+			</div>
+		<div class="cl"></div>
+		<!--h1>Инвентарь</h1>
+		<div class="inventory-box"><div class="inventory"></div></div-->
+
+		<script>
+
+			function getRandomNumberCount() {
+				return Math.floor(Math.random() * (max - min) + min)
+			}
+
+			function checkIntersecionRooms() {
+				let key = true;
+				array1.forEach(function(x) {
+					if (key === false) {
+							return 0;
+						}
+					array2.forEach(function(y) {
+						if (JSON.stringify(arrayMain).includes(JSON.stringify([x, y])) || JSON.stringify(arrayMain).includes(JSON.stringify([x + 1, y + 1])) || JSON.stringify(arrayMain).includes(JSON.stringify([x-1, y-1])) || JSON.stringify(arrayMain).includes(JSON.stringify([x+1, y])) || JSON.stringify(arrayMain).includes(JSON.stringify([x, y+1]))|| JSON.stringify(arrayMain).includes(JSON.stringify([x-1, y])) || JSON.stringify(arrayMain).includes(JSON.stringify([x, y-1])) || JSON.stringify(arrayMain).includes(JSON.stringify([x+1, y-1])) || JSON.stringify(arrayMain).includes(JSON.stringify([x-1, y+1])) || x > 40 || y > 24) {
+							key = false;
+							return 0;    
+						}
+					});
+				});
+				if (key === false) return true;
+				return false;
+			}
+
+			let arrayRandomColumns = []
+			let arrayRandomRows = []
+
+			for (let i = 0; i < getRandomNumberCount(min = 3, max = 6); i++) {
+				randomElement = getRandomNumberCount(min = 1, max = 41)
+				while (arrayRandomColumns.includes(randomElement) || arrayRandomColumns.includes(randomElement - 1) || arrayRandomColumns.includes(randomElement + 1)) {
+					randomElement = getRandomNumberCount(min = 1, max = 41);
+				}
+				arrayRandomColumns.push(randomElement);
+			}
+			for (let i = 0; i < getRandomNumberCount(min = 3, max = 6); i++) {
+				randomElement = getRandomNumberCount(min = 1, max = 25)
+				while (arrayRandomRows.includes(randomElement) || arrayRandomRows.includes(randomElement - 1) || arrayRandomRows.includes(randomElement + 1)) {
+					randomElement = getRandomNumberCount(min = 1, max = 25);
+				}
+				arrayRandomRows.push(randomElement);
+			}
+
+			arrayCorridors = []
+
+			for (let i = 1; i < 25; i++) {
+				for (let j = 0; j < arrayRandomColumns.length; j++) {
+					arrayCorridors.push([arrayRandomColumns[j], i])
+				}
+			}
+			for (let i = 1; i < 41; i++) {
+				for (let j = 0; j < arrayRandomRows.length; j++) {
+					arrayCorridors.push([i, arrayRandomRows[j]])
+				}
+			}
+
+			arrayRooms = []
+
+			const createArrayRooms = () => {
+				let res = true
+				while (res === true) {
+					
+					arrayColumnRooms = []
+					arrayRowRooms = []
+					elementColumn = getRandomNumberCount(min = 1, max = 41)
+					elementRow = getRandomNumberCount(min = 1, max = 25)
+
+					for (let i = 0; i < getRandomNumberCount(min = 3, max = 9); i++) {
+						arrayColumnRooms.push(elementColumn + i)
+					}
+					for (let i = 0; i < getRandomNumberCount(min = 3, max = 9); i++) {
+						arrayRowRooms.push(elementRow + i)
+					}
+					if (arrayColumnRooms.some(item => array1.includes(item)) === true || arrayRowRooms.some(item => array2.includes(item)) === true) {
+						res = false
+					}
+				}					
+					if (checkIntersecionRooms(array1 = arrayColumnRooms, array2 = arrayRowRooms, arrayMain = arrayRooms) === false) {
+						arrayColumnRooms.forEach(function(x) {
+							arrayRowRooms.forEach(function(y) {
+								arrayRooms.push([x, y])
+						});
+					});	
+				}
+				else {
+					createArrayRooms(array1 = arrayRandomColumns, array2 = arrayRandomRows)//???аргументы функции
+				}
+			}
+
+			for (let i = 0; i < getRandomNumberCount(min = 5, max = 11); i++) {
+				createArrayRooms(array1 = arrayRandomColumns, array2 = arrayRandomRows)
+			}
+			
+			let arrayEmptySlots = arrayRooms.concat(arrayCorridors)
+			
+			arrayHero = []
+			arrayEnemyes = []
+			arrayHP = []
+			arraySwords = []
+			arrayAlreadyRendered = []
+
+			function createHero() {
+				let res = true
+				while (res === true) {
+					columnPerson = getRandomNumberCount(min = 1, max = 41)
+					rowPerson = getRandomNumberCount(min = 1, max = 25)
+					for (let i = 0; i < arrayEmptySlots.length; i++) {	
+						if (arrayEmptySlots[i][0] === columnPerson && arrayEmptySlots[i][1] === rowPerson) {
+							arrayHero.push(columnPerson, rowPerson)
+							arrayAlreadyRendered.push([columnPerson, rowPerson])
+							res = false
+						}
+					}
+				}
+			}
+
+			function createPerson() {
+				let res = true
+				while (res === true) {
+					columnPerson = getRandomNumberCount(min = 1, max = 41)
+					rowPerson = getRandomNumberCount(min = 1, max = 25)
+					for (let i = 0; i < arrayEmptySlots.length; i++) {	
+						if (arrayEmptySlots[i][0] === columnPerson && arrayEmptySlots[i][1] === rowPerson) {
+							for (let j = 0; j < arrayAlreadyRendered.length; j++) {
+								if (arrayAlreadyRendered[j][0] === columnPerson && arrayAlreadyRendered[j][1] === rowPerson){
+									res = true
+									break
+								}
+								else {
+									res = false
+								}
+							}
+							if (res === false) {
+								arrayPerson.push([columnPerson, rowPerson])
+								arrayAlreadyRendered.push([columnPerson, rowPerson])
+							}
+							break
+						}
+					}
+				}
+			}
+
+			createHero()
+
+			for (let i = 0; i < 10; i++) {
+				createPerson(arrayPerson = arrayEnemyes)
+			}
+			for (let i = 0; i < 10; i++) {
+				createPerson(arrayPerson = arrayHP)
+			}
+			for (let i = 0; i < 2; i++) {
+				createPerson(arrayPerson = arraySwords)
+			}
+			
+			for (let i = 1; i < 25; i++){
+				for (let j = 1; j < 41; j++) {
+					let parent = document.getElementById('field');
+					let el = document.createElement('div');	
+					el.className = "tileW";
+					el.style = "grid-row: " + i + '; ' + "grid-column: " + j;
+					if (arrayRandomColumns.includes(j)) {
+						let el = document.createElement('div');	
+						el.className = "tile";
+						el.style = "grid-row: " + i + '; ' + "grid-column: " + j;
+						parent.appendChild(el);
+					}
+					if (arrayRandomRows.includes(i)) {
+						let el = document.createElement('div');	
+						el.className = "tile";
+						el.style = "grid-row: " + i + '; ' + "grid-column: " + j;
+						parent.appendChild(el);
+					}
+					for (let k = 0; k < arrayRooms.length; k++) {
+						if (arrayRooms[k][0] === j && arrayRooms[k][1] === i) {
+							let el = document.createElement('div');	
+							el.className = "tile";
+							el.style = "grid-row: " + i + '; ' + "grid-column: " + j;
+							parent.appendChild(el);
+						}
+					}
+					if (arrayHero[0] === j && arrayHero[1] === i) {
+						let el = document.createElement('div');
+						el.className = 'tileP'
+						el.style = "grid-row: " + i + '; ' + "grid-column: " + j;
+						el.setAttribute('id', 'Hero' + j + '_' + i);
+						parent.appendChild(el);
+						let parentTile = document.getElementById('Hero' + j + '_' + i);
+						let elHp = document.createElement('div');	
+						elHp.className = 'health'
+						elHp.setAttribute('id', 'HPHero');
+						elHp.style = "grid-row: " + i + '; ' + "grid-column: " + j;
+						elHp.style.width = '20px'
+						parentTile.appendChild(elHp);
+					}
+					for (let k = 0; k < arrayEnemyes.length; k++) {
+						if (arrayEnemyes[k][0] === j && arrayEnemyes[k][1] === i) {
+							let el = document.createElement('div');
+							let enemyId = 'Enemy' + j + '_' + i
+							el.className = 'tileE'
+							el.setAttribute('id', enemyId)
+							el.style = "grid-row: " + i + '; ' + "grid-column: " + j;
+							el.style.width = '50px'
+							parent.appendChild(el);
+							let parentTile = document.getElementById(enemyId);
+							let elHp = document.createElement('div');
+							elHp.className = 'health'
+							elHp.setAttribute('id', 'Hp' + enemyId)
+							elHp.style = "grid-row: " + i + '; ' + "grid-column: " + j;
+							elHp.style.width = '50px'
+							parentTile.appendChild(elHp);
+						}
+					}
+					for (let k = 0; k < arrayHP.length; k++) {
+						if (arrayHP[k][0] === j && arrayHP[k][1] === i) {
+							let el = document.createElement('div');
+							let HPId = 'HP' + j + '_' + i
+							el.className = 'tileHP'
+							el.setAttribute('id', HPId)
+							el.style = "grid-row: " + i + '; ' + "grid-column: " + j;
+							el.style.width = '50px'
+							parent.appendChild(el);
+						}
+					}
+					for (let k = 0; k < arraySwords.length; k++) {
+						if (arraySwords[k][0] === j && arraySwords[k][1] === i) {
+							let el = document.createElement('div');
+							let SWId = 'SW' + j + '_' + i
+							el.className = 'tileSW'
+							el.setAttribute('id', SWId)
+							el.style = "grid-row: " + i + '; ' + "grid-column: " + j;
+							el.style.width = '50px'
+							parent.appendChild(el);
+						}
+					}
+					parent.appendChild(el);
+				}
+			}
+
+		let hero = window.document.querySelector('.tileP')
+
+		const moveEnemyes = () => {
+			for (let i = 0; i < arrayEnemyes.length; i++) {
+				let block = false;
+				let blockEnemy = false;
+			while (block === false) {
+					key = getRandomNumberCount(min = 1, max = 5)
+					enemy = document.getElementById('Enemy' + arrayEnemyes[i][0] + '_' + arrayEnemyes[i][1]);
+					enemyHp = document.getElementById('HpEnemy' + arrayEnemyes[i][0] + '_' + arrayEnemyes[i][1]);
+					switch (key) {
+						case 1:
+							for (let j = 0; j < arrayEmptySlots.length; j++) {
+								if (arrayEmptySlots[j][0] === arrayEnemyes[i][0] && arrayEmptySlots[j][1] === arrayEnemyes[i][1] - 1) {
+									if (arrayEmptySlots[j][0] === arrayHero[0] && arrayEmptySlots[j][1] === arrayHero[1]) {
+										HPHero = document.getElementById('HPHero');
+										statusHPHero -= 5
+										if (statusHPHero <= 0) {
+											HPHero.style.width = '0px'
+											setTimeout(endGame, 10)
+										}
+										HPHero.style.width = `${statusHPHero}px`
+										block = true;
+										break
+									}
+									for (let k = 0; k < arrayEnemyes.length; k++) {
+										if (arrayEmptySlots[j][0] === arrayEnemyes[k][0] && arrayEmptySlots[j][1] === arrayEnemyes[k][1]) {
+											block = true
+											blockEnemy = true
+											break
+										}
+									}
+									if (blockEnemy === true) {
+										break
+									}
+									arrayEnemyes[i][1] = arrayEnemyes[i][1] - 1;
+									enemy.style.gridRow--;
+									enemy.setAttribute('id', 'Enemy' + arrayEnemyes[i][0] + '_' + arrayEnemyes[i][1])
+									enemyHp.setAttribute('id', 'HpEnemy' + arrayEnemyes[i][0] + '_' + arrayEnemyes[i][1])
+									if (arrayEnemyes[i][0] === arrayHero[0] + 1 && arrayEnemyes[i][1] === arrayHero[1] || arrayEnemyes[i][0] === arrayHero[0] && arrayEnemyes[i][1] === arrayHero[1] + 1 || arrayEnemyes[i][0] === arrayHero[0] - 1 && arrayEnemyes[i][1] === arrayHero[1] || arrayEnemyes[i][0] === arrayHero[0] && arrayEnemyes[i][1] === arrayHero[1] - 1 || arrayEnemyes[i][0] === arrayHero[0] + 1 && arrayEnemyes[i][1] === arrayHero[1] + 1 || arrayEnemyes[i][0] === arrayHero[0] - 1 && arrayEnemyes[i][1] === arrayHero[1] - 1 || arrayEnemyes[i][0] === arrayHero[0] - 1 && arrayEnemyes[i][1] === arrayHero[1] + 1 || arrayEnemyes[i][0] === arrayHero[0] + 1 && arrayEnemyes[i][1] === arrayHero[1] - 1) {
+										HPHero = document.getElementById('HPHero');
+										statusHPHero -= 5
+										if (statusHPHero <= 0) {
+											HPHero.style.width = '0px'
+											setTimeout(endGame, 10)
+										}
+										HPHero.style.width = `${statusHPHero}px`
+
+									}
+									block = true;
+									break
+								}
+							block = false;
+							}				
+							break
+						case 2:
+							for (let j = 0; j < arrayEmptySlots.length; j++) {
+								if (arrayEmptySlots[j][0] === arrayEnemyes[i][0] && arrayEmptySlots[j][1] === arrayEnemyes[i][1] + 1) {
+									if (arrayEmptySlots[j][0] === arrayHero[0] && arrayEmptySlots[j][1] === arrayHero[1]) {
+										HPHero = document.getElementById('HPHero');
+										statusHPHero -= 5
+										if (statusHPHero <= 0) {
+											HPHero.style.width = '0px'
+											setTimeout(endGame, 10)
+										}
+										HPHero.style.width = `${statusHPHero}px`
+										block = true;
+										break
+									}
+									for (let k = 0; k < arrayEnemyes.length; k++) {
+										if (arrayEmptySlots[j][0] === arrayEnemyes[k][0] && arrayEmptySlots[j][1] === arrayEnemyes[k][1]) {
+											block = true
+											blockEnemy = true
+											break
+										}
+									}
+									if (blockEnemy === true) {
+										break
+									}
+									arrayEnemyes[i][1] = arrayEnemyes[i][1] + 1;
+									enemy.style.gridRow++;
+									enemy.setAttribute('id', 'Enemy' + arrayEnemyes[i][0] + '_' + arrayEnemyes[i][1])
+									enemyHp.setAttribute('id', 'HpEnemy' + arrayEnemyes[i][0] + '_' + arrayEnemyes[i][1])
+									if (arrayEnemyes[i][0] === arrayHero[0] + 1 && arrayEnemyes[i][1] === arrayHero[1] || arrayEnemyes[i][0] === arrayHero[0] && arrayEnemyes[i][1] === arrayHero[1] + 1 || arrayEnemyes[i][0] === arrayHero[0] - 1 && arrayEnemyes[i][1] === arrayHero[1] || arrayEnemyes[i][0] === arrayHero[0] && arrayEnemyes[i][1] === arrayHero[1] - 1 || arrayEnemyes[i][0] === arrayHero[0] + 1 && arrayEnemyes[i][1] === arrayHero[1] + 1 || arrayEnemyes[i][0] === arrayHero[0] - 1 && arrayEnemyes[i][1] === arrayHero[1] - 1 || arrayEnemyes[i][0] === arrayHero[0] - 1 && arrayEnemyes[i][1] === arrayHero[1] + 1 || arrayEnemyes[i][0] === arrayHero[0] + 1 && arrayEnemyes[i][1] === arrayHero[1] - 1) {
+										HPHero = document.getElementById('HPHero');
+										statusHPHero -= 5
+										if (statusHPHero <= 0) {
+											HPHero.style.width = '0px'
+											setTimeout(endGame, 10)
+										}
+										HPHero.style.width = `${statusHPHero}px`
+
+									}
+									block = true;
+									break
+								}
+							block = false;
+							}	
+							break
+						case 3:
+							for (let j = 0; j < arrayEmptySlots.length; j++) {
+								if (arrayEmptySlots[j][0] === arrayEnemyes[i][0] - 1 && arrayEmptySlots[j][1] === arrayEnemyes[i][1]) {
+									if (arrayEmptySlots[j][0] === arrayHero[0] && arrayEmptySlots[j][1] === arrayHero[1]) {
+										HPHero = document.getElementById('HPHero');
+										statusHPHero -= 5
+										if (statusHPHero <= 0) {
+											HPHero.style.width = '0px'
+											setTimeout(endGame, 10)
+										}
+										HPHero.style.width = `${statusHPHero}px`
+										block = true;
+										break
+									}
+									for (let k = 0; k < arrayEnemyes.length; k++) {
+										if (arrayEmptySlots[j][0] === arrayEnemyes[k][0] && arrayEmptySlots[j][1] === arrayEnemyes[k][1]) {
+											block = true
+											blockEnemy = true
+											break
+										}
+									}
+									if (blockEnemy === true) {
+										break
+									}
+									arrayEnemyes[i][0] = arrayEnemyes[i][0] - 1;
+									enemy.style.gridColumn--;
+									enemy.setAttribute('id', 'Enemy' + arrayEnemyes[i][0] + '_' + arrayEnemyes[i][1])
+									enemyHp.setAttribute('id', 'HpEnemy' + arrayEnemyes[i][0] + '_' + arrayEnemyes[i][1])
+									if (arrayEnemyes[i][0] === arrayHero[0] + 1 && arrayEnemyes[i][1] === arrayHero[1] || arrayEnemyes[i][0] === arrayHero[0] && arrayEnemyes[i][1] === arrayHero[1] + 1 || arrayEnemyes[i][0] === arrayHero[0] - 1 && arrayEnemyes[i][1] === arrayHero[1] || arrayEnemyes[i][0] === arrayHero[0] && arrayEnemyes[i][1] === arrayHero[1] - 1 || arrayEnemyes[i][0] === arrayHero[0] + 1 && arrayEnemyes[i][1] === arrayHero[1] + 1 || arrayEnemyes[i][0] === arrayHero[0] - 1 && arrayEnemyes[i][1] === arrayHero[1] - 1 || arrayEnemyes[i][0] === arrayHero[0] - 1 && arrayEnemyes[i][1] === arrayHero[1] + 1 || arrayEnemyes[i][0] === arrayHero[0] + 1 && arrayEnemyes[i][1] === arrayHero[1] - 1) {
+										HPHero = document.getElementById('HPHero');
+										statusHPHero -= 5
+										if (statusHPHero <= 0) {
+											HPHero.style.width = '0px'
+											setTimeout(endGame, 10)
+										}
+										HPHero.style.width = `${statusHPHero}px`
+
+									}
+									block = true;
+									break
+								}
+							block = false;
+							}	
+							break
+						case 4:
+							for (let j = 0; j < arrayEmptySlots.length; j++) {
+								if (arrayEmptySlots[j][0] === arrayEnemyes[i][0] + 1 && arrayEmptySlots[j][1] === arrayEnemyes[i][1]) {
+									if (arrayEmptySlots[j][0] === arrayHero[0] && arrayEmptySlots[j][1] === arrayHero[1]) {
+										HPHero = document.getElementById('HPHero');
+										statusHPHero -= 5
+										if (statusHPHero <= 0) {
+											HPHero.style.width = '0px'
+											setTimeout(endGame, 10)
+										}
+										HPHero.style.width = `${statusHPHero}px`
+										block = true;
+										break
+									}
+									for (let k = 0; k < arrayEnemyes.length; k++) {
+										if (arrayEmptySlots[j][0] === arrayEnemyes[k][0] && arrayEmptySlots[j][1] === arrayEnemyes[k][1]) {
+											block = true
+											blockEnemy = true
+											break
+										}
+									}
+									if (blockEnemy === true) {
+										break
+									}
+									arrayEnemyes[i][0] = arrayEnemyes[i][0] + 1;
+									enemy.style.gridColumn++;
+									enemy.setAttribute('id', 'Enemy' + arrayEnemyes[i][0] + '_' + arrayEnemyes[i][1])
+									enemyHp.setAttribute('id', 'HpEnemy' + arrayEnemyes[i][0] + '_' + arrayEnemyes[i][1])
+									if (arrayEnemyes[i][0] === arrayHero[0] + 1 && arrayEnemyes[i][1] === arrayHero[1] || arrayEnemyes[i][0] === arrayHero[0] && arrayEnemyes[i][1] === arrayHero[1] + 1 || arrayEnemyes[i][0] === arrayHero[0] - 1 && arrayEnemyes[i][1] === arrayHero[1] || arrayEnemyes[i][0] === arrayHero[0] && arrayEnemyes[i][1] === arrayHero[1] - 1 || arrayEnemyes[i][0] === arrayHero[0] + 1 && arrayEnemyes[i][1] === arrayHero[1] + 1 || arrayEnemyes[i][0] === arrayHero[0] - 1 && arrayEnemyes[i][1] === arrayHero[1] - 1 || arrayEnemyes[i][0] === arrayHero[0] - 1 && arrayEnemyes[i][1] === arrayHero[1] + 1 || arrayEnemyes[i][0] === arrayHero[0] + 1 && arrayEnemyes[i][1] === arrayHero[1] - 1) {
+										HPHero = document.getElementById('HPHero');
+										statusHPHero -= 5
+										if (statusHPHero <= 0) {
+											HPHero.style.width = '0px'
+											setTimeout(endGame, 10)
+										}
+										HPHero.style.width = `${statusHPHero}px`
+
+									}
+									block = true;
+									break
+								}
+							block = false;
+							}	
+							break
+					}
+				}
+			}
+		}
+
+		let statusHPHero = 20
+		let statusHPEnemy = [
+			50,
+			50,
+			50,
+			50,
+			50,
+			50,
+			50,
+			50,
+			50,
+			50,
+		]
+		let damage = 20
+
+		document.addEventListener('keypress', (event) => {
+			const keyName = event.key;
+			let hero = document.getElementById('Hero' + arrayHero[0] + '_' + arrayHero[1])
+			if (keyName == " "){
+				for (let i = 0; i < arrayEnemyes.length; i++) {
+					if (arrayEnemyes[i][0] === arrayHero[0] + 1 && arrayEnemyes[i][1] === arrayHero[1] || arrayEnemyes[i][0] === arrayHero[0] && arrayEnemyes[i][1] === arrayHero[1] + 1 || arrayEnemyes[i][0] === arrayHero[0] - 1 && arrayEnemyes[i][1] === arrayHero[1] || arrayEnemyes[i][0] === arrayHero[0] && arrayEnemyes[i][1] === arrayHero[1] - 1 || arrayEnemyes[i][0] === arrayHero[0] + 1 && arrayEnemyes[i][1] === arrayHero[1] + 1 || arrayEnemyes[i][0] === arrayHero[0] - 1 && arrayEnemyes[i][1] === arrayHero[1] - 1 || arrayEnemyes[i][0] === arrayHero[0] - 1 && arrayEnemyes[i][1] === arrayHero[1] + 1 || arrayEnemyes[i][0] === arrayHero[0] + 1 && arrayEnemyes[i][1] === arrayHero[1] - 1) {
+						enemy = document.getElementById('Enemy' + arrayEnemyes[i][0] + '_' + arrayEnemyes[i][1]);
+						enemyHp = document.getElementById('HpEnemy' + arrayEnemyes[i][0] + '_' + arrayEnemyes[i][1]);					
+						statusHPEnemy[i] -= damage
+						if (statusHPEnemy[i] <= 0) {
+							enemyHp.style.width = '0px'
+							enemy.style.backgroundSize = '0%'
+							arrayEnemyes.splice(i, 1)
+						}
+						enemyHp.style.width = `${statusHPEnemy[i]}px`						
+					}
+				}
+				if (arrayEnemyes.length === 0) setTimeout(winGame, 10)
+				moveEnemyes()
+			}
+			if (keyName == "w" || keyName == "W" || keyName == 'ц' || keyName == 'Ц'){
+				let block1 = false;
+				let block2 = false;
+				for (let i = 0; i < arrayEnemyes.length; i++) {	
+					if (arrayEnemyes[i][0] === Number(hero.style.gridColumn) && arrayEnemyes[i][1] === Number(hero.style.gridRow) - 1) {
+						block1 = true;
+						break
+					}
+				}
+				for (let i = 0; i < arrayEmptySlots.length; i++) {
+					if (arrayEmptySlots[i][0] === Number(hero.style.gridColumn) && arrayEmptySlots[i][1] === Number(hero.style.gridRow) - 1) {
+						block2 = false;
+						break
+					}
+					block2 = true;
+				}
+				for (let i = 0; i < arrayHP.length; i++) {
+					if (arrayHP[i][0] === Number(hero.style.gridColumn) && arrayHP[i][1] === Number(hero.style.gridRow) - 1) {
+						HP = document.getElementById('HP' + arrayHP[i][0] + '_' + arrayHP[i][1]);
+						arrayHP.splice(i, 1)
+						HPHero = document.getElementById('HPHero');
+						HP.style.backgroundSize = '0%'
+						statusHPHero += 10
+						if (statusHPHero >= 50) statusHPHero = 50
+						HPHero.style.width = `${statusHPHero}px`
+						break
+					}
+				}
+				for (let i = 0; i < arraySwords.length; i++) {
+					if (arraySwords[i][0] === Number(hero.style.gridColumn) && arraySwords[i][1] === Number(hero.style.gridRow) - 1) {
+						SW = document.getElementById('SW' + arraySwords[i][0] + '_' + arraySwords[i][1]);
+						arraySwords.splice(i, 1)
+						SW.style.backgroundSize = '0%'
+						damage += 20
+						break
+					}
+				}
+				if (!block1 && !block2) {
+					hero.style.gridRow--;
+					arrayHero[1] = arrayHero[1] - 1;
+					hero.setAttribute('id', 'Hero' + arrayHero[0] + '_' + arrayHero[1])
+					moveEnemyes()
+				}
+			}
+			if (keyName == "s" || keyName == "S" || keyName == 'ы' || keyName == 'Ы'){
+				let block1 = false;
+				let block2 = false;
+				for (let i = 0; i < arrayEnemyes.length; i++) {	
+					if (arrayEnemyes[i][0] === Number(hero.style.gridColumn) && arrayEnemyes[i][1] === Number(hero.style.gridRow) + 1) {
+						block1 = true;
+						break
+					}
+				}
+				for (let i = 0; i < arrayEmptySlots.length; i++) {
+					if (arrayEmptySlots[i][0] === Number(hero.style.gridColumn) && arrayEmptySlots[i][1] === Number(hero.style.gridRow) + 1) {
+						block2 = false;
+						break
+					}
+					block2 = true;
+				}
+				for (let i = 0; i < arrayHP.length; i++) {
+					if (arrayHP[i][0] === Number(hero.style.gridColumn) && arrayHP[i][1] === Number(hero.style.gridRow) + 1) {
+						HP = document.getElementById('HP' + arrayHP[i][0] + '_' + arrayHP[i][1]);
+						arrayHP.splice(i, 1)
+						HPHero = document.getElementById('HPHero');
+						HP.style.backgroundSize = '0%'
+						statusHPHero += 10
+						if (statusHPHero >= 50) statusHPHero = 50
+						HPHero.style.width = `${statusHPHero}px`
+						break
+					}
+				}
+				for (let i = 0; i < arraySwords.length; i++) {
+					if (arraySwords[i][0] === Number(hero.style.gridColumn) && arraySwords[i][1] === Number(hero.style.gridRow) + 1) {
+						SW = document.getElementById('SW' + arraySwords[i][0] + '_' + arraySwords[i][1]);
+						arraySwords.splice(i, 1)
+						SW.style.backgroundSize = '0%'
+						damage += 20
+						break
+					}
+				}
+				if (!block1 && !block2) {
+					hero.style.gridRow++;
+					arrayHero[1] = arrayHero[1] + 1;
+					hero.setAttribute('id', 'Hero' + arrayHero[0] + '_' + arrayHero[1])
+					moveEnemyes()
+				}
+			}
+			if (keyName == "a" || keyName == "A" || keyName == 'ф' || keyName == 'Ф'){
+				let block1 = false;
+				let block2 = false;
+				for (let i = 0; i < arrayEnemyes.length; i++) {	
+					if (arrayEnemyes[i][0] === Number(hero.style.gridColumn) - 1 && arrayEnemyes[i][1] === Number(hero.style.gridRow)) {
+						block1 = true;
+						break
+					}
+				}
+				for (let i = 0; i < arrayEmptySlots.length; i++) {
+					if (arrayEmptySlots[i][0] === Number(hero.style.gridColumn) - 1 && arrayEmptySlots[i][1] === Number(hero.style.gridRow)) {
+						block2 = false;
+						break
+					}
+					block2 = true;
+				}
+				for (let i = 0; i < arrayHP.length; i++) {
+					if (arrayHP[i][0] === Number(hero.style.gridColumn) - 1 && arrayHP[i][1] === Number(hero.style.gridRow)) {
+						HP = document.getElementById('HP' + arrayHP[i][0] + '_' + arrayHP[i][1]);
+						arrayHP.splice(i, 1)
+						HPHero = document.getElementById('HPHero');
+						HP.style.backgroundSize = '0%'
+						statusHPHero += 10
+						if (statusHPHero >= 50) statusHPHero = 50
+						HPHero.style.width = `${statusHPHero}px`
+						break
+					}
+				}
+				for (let i = 0; i < arraySwords.length; i++) {
+					if (arraySwords[i][0] === Number(hero.style.gridColumn) - 1 && arraySwords[i][1] === Number(hero.style.gridRow)) {
+						SW = document.getElementById('SW' + arraySwords[i][0] + '_' + arraySwords[i][1]);
+						arraySwords.splice(i, 1)
+						SW.style.backgroundSize = '0%'
+						damage += 20
+						break
+					}
+				}
+				if (!block1 && !block2) {
+					hero.style.gridColumn--;
+					arrayHero[0] = arrayHero[0] - 1;
+					hero.setAttribute('id', 'Hero' + arrayHero[0] + '_' + arrayHero[1])
+					moveEnemyes()
+				}
+			}
+			if (keyName == "d" || keyName == "D" || keyName == 'в' || keyName == 'В'){
+				let block1 = false;
+				let block2 = false;
+				for (let i = 0; i < arrayEnemyes.length; i++) {	
+					if (arrayEnemyes[i][0] === Number(hero.style.gridColumn) + 1 && arrayEnemyes[i][1] === Number(hero.style.gridRow)) {
+						block1 = true;
+						break
+					}
+				}
+				for (let i = 0; i < arrayEmptySlots.length; i++) {
+					if (arrayEmptySlots[i][0] === Number(hero.style.gridColumn) + 1 && arrayEmptySlots[i][1] === Number(hero.style.gridRow)) {
+						block2 = false;
+						break
+					}
+					block2 = true;
+				}
+				for (let i = 0; i < arrayHP.length; i++) {
+					if (arrayHP[i][0] === Number(hero.style.gridColumn) + 1 && arrayHP[i][1] === Number(hero.style.gridRow)) {
+						HP = document.getElementById('HP' + arrayHP[i][0] + '_' + arrayHP[i][1]);
+						arrayHP.splice(i, 1)
+						HPHero = document.getElementById('HPHero');
+						HP.style.backgroundSize = '0%'
+						statusHPHero += 10
+						if (statusHPHero >= 50) statusHPHero = 50
+						HPHero.style.width = `${statusHPHero}px`
+						break
+					}
+				}
+				for (let i = 0; i < arraySwords.length; i++) {
+					if (arraySwords[i][0] === Number(hero.style.gridColumn) + 1 && arraySwords[i][1] === Number(hero.style.gridRow)) {
+						SW = document.getElementById('SW' + arraySwords[i][0] + '_' + arraySwords[i][1]);
+						arraySwords.splice(i, 1)
+						SW.style.backgroundSize = '0%'
+						damage += 20
+						break
+					}
+				}
+				if (!block1 && !block2) {
+					hero.style.gridColumn++;
+					arrayHero[0] = arrayHero[0] + 1;
+					hero.setAttribute('id', 'Hero' + arrayHero[0] + '_' + arrayHero[1])
+					moveEnemyes()
+				}
+			}
+    	});
+
+		const winGame = () => {
+			alert('Победа!')
+			location.reload()
+		}
+		const endGame = () => {
+			alert('Вы проиграли')
+			location.reload()
+		} 
+			
+			// var game=new Game();
+			// game.init();
+
+		</script>
+	</body>
+</html>
